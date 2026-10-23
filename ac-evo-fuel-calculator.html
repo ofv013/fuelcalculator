@@ -64,7 +64,7 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
  <div><label for="car">Car</label><select id="car"></select></div>
  <div><label for="track">Circuit</label><select id="track"></select></div>
  <div><label for="lap">Lap time (m:ss.d)</label><div class="stepper"><button type="button" data-d="-0.1" aria-label="Lap time -0.1 s">−</button><input id="lap" type="text" value="2:20.0" inputmode="decimal"><button type="button" data-d="0.1" aria-label="Lap time +0.1 s">+</button></div></div>
- <div><label for="cons">Fuel per lap (liters)</label><input id="cons" type="number" step="0.1" min="0.1"><div class="hint" id="chint"></div></div>
+ <div><label for="cons">Fuel per lap estimated (liters)</label><input id="cons" type="number" step="0.1" min="0.1"><div class="hint" id="chint"></div></div>
 </div>
 
 <div class="card">
@@ -76,7 +76,7 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
  <div><label>Conditions</label><div class="tog"><button id="dry" class="on">DRY</button><button id="wet">WET</button></div><div class="hint">WET = 8% less fuel per lap</div></div>
  <div><label for="res">Reserve fuel (liters)</label><input id="res" type="number" step="1" min="0" value="3"></div>
  <div><label class="chk"><input type="checkbox" id="pit"> Pit stop(s)</label></div>
- <div><label for="startcap">Max. start fuel (liters)</label><input id="startcap" type="number" step="1" min="30" value="80"></div>
+ <div><label for="startcap">Max. start fuel (liters)</label><input id="startcap" type="number" step="1" min="30" value="120"></div>
 </div>
 
 <div class="card result">
@@ -90,17 +90,16 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
 </div>
 
 <script>
-// Estimates: L/100km per car x track length x track factor. All values are editable.
-var BASE=50;
-var CARS=[["Audi R8 LMS GT3 Evo II",1.00],["BMW M4 GT3 EVO",0.98],["Ferrari 296 GT3",0.97],["Ford Mustang GT3",1.04],["Lamborghini Huracán GT3 Evo2",1.05],["McLaren 720S GT3 Evo",0.99],["Mercedes-AMG GT3 Evo",1.06],["Porsche 911 GT3 R (992)",1.01]];
-var TRACKS=[["Spa-Francorchamps",7.004,1.00],["Monza",5.793,1.02],["Imola",4.909,0.95],["Mugello",5.245,0.97],["Nürburgring GP",5.148,0.95],["Red Bull Ring",4.318,1.00],["Brands Hatch GP",3.916,0.93],["Laguna Seca",3.602,0.90],["Suzuka",5.807,0.97],["Road America",6.515,1.02],["Barcelona-Catalunya",4.675,0.96]];
+// Average fuel per lap (liters). Order of values = order of CARS. All values are editable in the app.
+var CARS=[["Audi R8 LMS GT3 Evo II"],["BMW M4 GT3 EVO"],["Ferrari 296 GT3"],["Ford Mustang GT3"],["Lamborghini Huracán GT3 Evo2"],["McLaren 720S GT3 Evo"],["Mercedes-AMG GT3 Evo"],["Porsche 911 GT3 R (992)"]];
+var TRACKS=[["Brands Hatch",[2.1,2.1,2.0,2.2,2.2,2.1,2.2,2.1]],["Circuit of the Americas",[3.1,3.1,3.0,3.2,3.3,3.1,3.3,3.1]],["Donington Park",[2.2,2.2,2.1,2.3,2.3,2.2,2.3,2.2]],["Imola",[2.6,2.5,2.5,2.7,2.7,2.6,2.7,2.6]],["Kyalami",[2.6,2.6,2.5,2.7,2.7,2.6,2.8,2.6]],["Laguna Seca",[2.1,2.1,2.0,2.2,2.2,2.1,2.2,2.1]],["Monza",[3.1,3.0,3.0,3.2,3.3,3.1,3.3,3.1]],["Mount Panorama (Bathurst)",[3.0,3.0,2.9,3.1,3.2,3.0,3.2,3.0]],["Nürburgring GP",[2.8,2.8,2.7,2.9,2.9,2.8,3.0,2.8]],["Nürburgring Nordschleife",[12.5,12.3,12.1,13.0,13.1,12.4,13.3,12.6]],["Oulton Park",[2.3,2.3,2.2,2.4,2.4,2.3,2.4,2.3]],["Red Bull Ring",[2.3,2.3,2.2,2.4,2.4,2.3,2.4,2.3]],["Spa-Francorchamps",[3.6,3.5,3.5,3.7,3.8,3.6,3.8,3.6]],["Suzuka",[3.0,3.0,2.9,3.1,3.2,3.0,3.2,3.0]]];
 var $=function(i){return document.getElementById(i)};
 var car=$('car'),track=$('track'),cons=$('cons'),wet=false;
 var pit={key:'',vals:[],lo:[],hi:[]};
 CARS.forEach(function(c,i){car.add(new Option(c[0],i))});
 TRACKS.forEach(function(t,i){track.add(new Option(t[0],i))});
 car.value=1;
-function est(){var c=CARS[car.value],t=TRACKS[track.value];return Math.round(t[1]*BASE/100*c[1]*t[2]*10)/10}
+function est(){return TRACKS[track.value][1][car.value]}
 function setEst(){cons.value=est();calc()}
 function parseLap(s){s=s.trim().replace(',','.');var m=s.match(/^(\d+):(\d{1,2}(?:\.\d+)?)$/);if(m)return +m[1]*60+ +m[2];var n=parseFloat(s);return n>0?n:NaN}
 function f(n){return n.toLocaleString('en-US',{maximumFractionDigits:1})}
@@ -123,7 +122,7 @@ function buildPlan(total,cap){
 function render(){
  var v=pit.vals,n=v.length,h='',canRm=pit.cap+80*(n-2)>=pit.total;
  pit.lo=v.map(function(_,i){return i?0:1});
- pit.hi=v.map(function(_,i){return i?80:pit.cap});
+ pit.hi=v.map(function(_,i){return Math.min(i?80:pit.cap,pit.total-(i?1:0))});
  v.forEach(function(_,i){h+='<div class="pit"><div class="row"><span>'+label(i)+'</span>'+(i>0&&n>2?'<button type="button" class="rm" onclick="rmStop('+i+')"'+(canRm?'':' disabled title="Not enough capacity left without this stop"')+'>Remove</button>':'')+'<span id="v'+i+'"></span></div><input type="range" id="s'+i+'" min="'+pit.lo[i]+'" max="'+pit.hi[i]+'" step="1" oninput="slide('+i+',this.value)"></div>'});
  if(n<6)h+='<button type="button" class="add" onclick="addStop()">+ Add pit stop</button>';
  $('segs').innerHTML=h;paint();
@@ -150,7 +149,7 @@ function calc(){
  $('total').textContent=total;$('laps').textContent=laps;$('rtime').textContent=fmt(laps*lap);
  var plan=$('plan');
  if(!$('pit').checked){plan.classList.remove('show');pit.key='';return}
- var cap=Math.max(30,parseFloat($('startcap').value)||80),key=total+'|'+cap;
+ var cap=Math.max(30,parseFloat($('startcap').value)||120),key=total+'|'+cap;
  if(key!==pit.key){pit.key=key;buildPlan(total,cap)}
  plan.classList.add('show');
 }
